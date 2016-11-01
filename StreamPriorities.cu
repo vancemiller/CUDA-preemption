@@ -82,6 +82,7 @@ int main(int argc, char **argv)
   printf("CUDA stream priority range: LOW: %d to HIGH: %d\n", priority_low, priority_hi);
 
   for (int i = 2; i < 12; i += 2) {
+    printf("==== %d streams ====\n", i);
     // empirical testing shows that we can create 12 threads on the GTX 1080
     // before this benchmark runsout of memory.
     create_streams(priority_low, priority_hi, i);
@@ -93,7 +94,6 @@ int create_streams(int priority_low, int priority_hi, int n_streams) {
   // create streams with all available priorities
   cudaStream_t streams[n_streams];
   int priority_space = abs(priority_low - priority_hi) + 1;
-  printf("priority space %d\n", priority_space);
   for (int i = 0; i < priority_space; i++) {
     for (int j = n_streams / priority_space * i;
         j < n_streams / priority_space * (i + 1); j++) {
@@ -123,7 +123,6 @@ int create_streams(int priority_low, int priority_hi, int n_streams) {
   // copy source data -> device
   int *d_src[n_streams];
   for (int i = 0; i < n_streams; i++) {
-    printf("mallocing at %p\n", d_src + i);
     checkCudaErrors(cudaMalloc(&d_src[i], size));
     checkCudaErrors(cudaMemcpy(d_src[i], h_src[i], size, cudaMemcpyHostToDevice));
   }
