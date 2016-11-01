@@ -1,2 +1,4 @@
 StreamPriorities.o
 StreamPriorities
+PreemptStream
+*.o

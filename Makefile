@@ -165,13 +165,13 @@ SAMPLE_ENABLED := 1
 
 # This sample is not supported on ARMv7
 ifeq ($(TARGET_ARCH),armv7l)
-  $(info >>> WARNING - StreamPriorities is not supported on ARMv7 - waiving sample <<<)
+  $(info >>> WARNING - PreemptStream is not supported on ARMv7 - waiving sample <<<)
   SAMPLE_ENABLED := 0
 endif
 
 # This sample is not supported on aarch64
 ifeq ($(TARGET_ARCH),aarch64)
-  $(info >>> WARNING - StreamPriorities is not supported on aarch64 - waiving sample <<<)
+  $(info >>> WARNING - PreemptStream is not supported on aarch64 - waiving sample <<<)
   SAMPLE_ENABLED := 0
 endif
 
@@ -216,7 +216,7 @@ endif
 # Target rules
 all: build
 
-build: StreamPriorities
+build: PreemptStream
 
 check.deps:
 ifeq ($(SAMPLE_ENABLED),0)
@@ -225,19 +225,16 @@ else
 	@echo "Sample is ready - all dependencies have been met"
 endif
 
-StreamPriorities.o:StreamPriorities.cu
+PreemptStream.o:PreemptStream.cu
 	$(EXEC) $(NVCC) $(INCLUDES) $(ALL_CCFLAGS) $(GENCODE_FLAGS) -o $@ -c $<
 
-StreamPriorities: StreamPriorities.o
+PreemptStream: PreemptStream.o
 	$(EXEC) $(NVCC) $(ALL_LDFLAGS) $(GENCODE_FLAGS) -o $@ $+ $(LIBRARIES)
-	$(EXEC) mkdir -p ./bin/$(TARGET_ARCH)/$(TARGET_OS)/$(BUILD_TYPE)
-	$(EXEC) cp $@ ./bin/$(TARGET_ARCH)/$(TARGET_OS)/$(BUILD_TYPE)
 
 run: build
-	$(EXEC) ./StreamPriorities
+	$(EXEC) ./PreemptStream
 
 clean:
-	rm -f StreamPriorities StreamPriorities.o
-	rm -rf ./bin/$(TARGET_ARCH)/$(TARGET_OS)/$(BUILD_TYPE)/StreamPriorities
+	rm -f PreemptStream PreemptStream.o
 
 clobber: clean
