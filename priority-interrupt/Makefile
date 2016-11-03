@@ -165,13 +165,13 @@ SAMPLE_ENABLED := 1
 
 # This sample is not supported on ARMv7
 ifeq ($(TARGET_ARCH),armv7l)
-  $(info >>> WARNING - one-stream is not supported on ARMv7 - waiving sample <<<)
+  $(info >>> WARNING - priority-interrupt is not supported on ARMv7 - waiving sample <<<)
   SAMPLE_ENABLED := 0
 endif
 
 # This sample is not supported on aarch64
 ifeq ($(TARGET_ARCH),aarch64)
-  $(info >>> WARNING - one-stream is not supported on aarch64 - waiving sample <<<)
+  $(info >>> WARNING - priority-interrupt is not supported on aarch64 - waiving sample <<<)
   SAMPLE_ENABLED := 0
 endif
 
@@ -216,7 +216,7 @@ endif
 # Target rules
 all: build
 
-build: one-stream
+build: priority-interrupt
 
 check.deps:
 ifeq ($(SAMPLE_ENABLED),0)
@@ -225,16 +225,16 @@ else
 	@echo "Sample is ready - all dependencies have been met"
 endif
 
-one-stream.o:one-stream.cu
+priority-interrupt.o:priority-interrupt.cu
 	$(EXEC) $(NVCC) $(INCLUDES) $(ALL_CCFLAGS) $(GENCODE_FLAGS) -o $@ -c $<
 
-one-stream: one-stream.o
+priority-interrupt: priority-interrupt.o
 	$(EXEC) $(NVCC) $(ALL_LDFLAGS) $(GENCODE_FLAGS) -o $@ $+ $(LIBRARIES)
 
 run: build
-	$(EXEC) ./one-stream
+	$(EXEC) ./priority-interrupt
 
 clean:
-	rm -f one-stream one-stream.o
+	rm -f priority-interrupt priority-interrupt.o
 
 clobber: clean

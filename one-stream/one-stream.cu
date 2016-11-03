@@ -109,7 +109,7 @@ int preempt_stream(int priority_low, int priority_hi) {
   size = TOTAL_SIZE;
 
   // initialise host data
-  int *h_src[2];
+  int *h_src[n_streams];
   for (int i = 0; i < n_streams; i++) {
     ERR_EQ(h_src[i] = (int *) malloc(size), NULL);
     mem_init(h_src[i], size);
@@ -195,7 +195,7 @@ int preempt_stream(int priority_low, int priority_hi) {
     checkCudaErrors(cudaEventSynchronize(ev_end[1]));
     checkCudaErrors(cudaEventSynchronize(ev_end[0]));
 
-    float ms[2];
+    float ms[n_streams];
     for (int i = 0; i < n_streams; i++) {
       checkCudaErrors(cudaEventElapsedTime(&ms[i], ev_start[i], ev_end[i]));
     }

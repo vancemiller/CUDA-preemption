@@ -165,13 +165,13 @@ SAMPLE_ENABLED := 1
 
 # This sample is not supported on ARMv7
 ifeq ($(TARGET_ARCH),armv7l)
-  $(info >>> WARNING - StreamPriorities is not supported on ARMv7 - waiving sample <<<)
+  $(info >>> WARNING - priority-streams is not supported on ARMv7 - waiving sample <<<)
   SAMPLE_ENABLED := 0
 endif
 
 # This sample is not supported on aarch64
 ifeq ($(TARGET_ARCH),aarch64)
-  $(info >>> WARNING - StreamPriorities is not supported on aarch64 - waiving sample <<<)
+  $(info >>> WARNING - priority-streams is not supported on aarch64 - waiving sample <<<)
   SAMPLE_ENABLED := 0
 endif
 
@@ -181,7 +181,7 @@ ALL_LDFLAGS += $(addprefix -Xlinker ,$(LDFLAGS))
 ALL_LDFLAGS += $(addprefix -Xlinker ,$(EXTRA_LDFLAGS))
 
 # Common includes and paths for CUDA
-INCLUDES  := -Icommon/inc
+INCLUDES  := -I../common/inc
 LIBRARIES :=
 
 ################################################################################
@@ -216,7 +216,7 @@ endif
 # Target rules
 all: build
 
-build: StreamPriorities
+build: priority-streams
 
 check.deps:
 ifeq ($(SAMPLE_ENABLED),0)
@@ -225,16 +225,16 @@ else
 	@echo "Sample is ready - all dependencies have been met"
 endif
 
-StreamPriorities.o:StreamPriorities.cu
+priority-streams.o:priority-streams.cu
 	$(EXEC) $(NVCC) $(INCLUDES) $(ALL_CCFLAGS) $(GENCODE_FLAGS) -o $@ -c $<
 
-StreamPriorities: StreamPriorities.o
+priority-streams: priority-streams.o
 	$(EXEC) $(NVCC) $(ALL_LDFLAGS) $(GENCODE_FLAGS) -o $@ $+ $(LIBRARIES)
 
 run: build
-	$(EXEC) ./StreamPriorities
+	$(EXEC) ./priority-streams
 
 clean:
-	rm -f StreamPriorities StreamPriorities.o
+	rm -f priority-streams priority-streams.o
 
 clobber: clean

@@ -165,13 +165,13 @@ SAMPLE_ENABLED := 1
 
 # This sample is not supported on ARMv7
 ifeq ($(TARGET_ARCH),armv7l)
-  $(info >>> WARNING - PreemptStreams is not supported on ARMv7 - waiving sample <<<)
+  $(info >>> WARNING - n-streams is not supported on ARMv7 - waiving sample <<<)
   SAMPLE_ENABLED := 0
 endif
 
 # This sample is not supported on aarch64
 ifeq ($(TARGET_ARCH),aarch64)
-  $(info >>> WARNING - PreemptStreams is not supported on aarch64 - waiving sample <<<)
+  $(info >>> WARNING - n-streams is not supported on aarch64 - waiving sample <<<)
   SAMPLE_ENABLED := 0
 endif
 
@@ -181,7 +181,7 @@ ALL_LDFLAGS += $(addprefix -Xlinker ,$(LDFLAGS))
 ALL_LDFLAGS += $(addprefix -Xlinker ,$(EXTRA_LDFLAGS))
 
 # Common includes and paths for CUDA
-INCLUDES  := -Icommon/inc
+INCLUDES  := -I../common/inc
 LIBRARIES :=
 
 ################################################################################
@@ -216,7 +216,7 @@ endif
 # Target rules
 all: build
 
-build: PreemptStreams
+build: n-streams
 
 check.deps:
 ifeq ($(SAMPLE_ENABLED),0)
@@ -225,16 +225,16 @@ else
 	@echo "Sample is ready - all dependencies have been met"
 endif
 
-PreemptStreams.o:PreemptStreams.cu
+n-streams.o:n-streams.cu
 	$(EXEC) $(NVCC) $(INCLUDES) $(ALL_CCFLAGS) $(GENCODE_FLAGS) -o $@ -c $<
 
-PreemptStreams: PreemptStreams.o
+n-streams: n-streams.o
 	$(EXEC) $(NVCC) $(ALL_LDFLAGS) $(GENCODE_FLAGS) -o $@ $+ $(LIBRARIES)
 
 run: build
-	$(EXEC) ./PreemptStreams
+	$(EXEC) ./n-streams
 
 clean:
-	rm -f PreemptStreams PreemptStreams.o
+	rm -f n-streams n-streams.o
 
 clobber: clean
