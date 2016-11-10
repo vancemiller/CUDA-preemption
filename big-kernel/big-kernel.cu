@@ -22,7 +22,6 @@
 // Semaphore include
 #include <sys/types.h>
 #include <unistd.h>
-#include "sysvbarrier.h"
 
 // throw error on equality
 #define ERR_EQ(X,Y) do { if ((X) == (Y)) { \
@@ -113,11 +112,6 @@ int main(int argc, char **argv) {
     exit (EXIT_FAILURE);
   }
 
-  // Set up barriers
-#define BARRIER_ID_START 149
-  BARRIER start_barrier = barrier_create(BARRIER_ID_START, n_processes);
-  pid_t id = 2;//getpid();
-
   // Set kernel to run
   void (*kernel)(int*, int*, int, int) = priority ? &high_priority : &low_priority;
   
@@ -146,9 +140,6 @@ int main(int argc, char **argv) {
   // each consecutive launch uses a different memory region
   for (int i = 0; i < ROUND_UP(iterations, n_regions); i++) {
     for (int j = 0; j < n_regions; j++) {
-      printf("waiting at barrier 0\n");
-      barrier_wait(start_barrier, id, n_processes);
-      printf("exited barrier 0\n");
       kernel<<<gridSize, blockSize, 0, stream>>>(dst[j], src[j], size,
           delay);
       checkCudaErrors(cudaStreamSynchronize(stream));
