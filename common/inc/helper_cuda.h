@@ -1065,7 +1065,7 @@ inline int _ConvertSMVer2Cores(int major, int minor)
     }
 
     // If we don't find the values, we default use the previous one to run properly
-    printf("MapSMtoCores for SM %d.%d is undefined.  Default to use %d Cores/SM\n", major, minor, nGpuArchCoresPerSM[index-1].Cores);
+    fprintf(stderr, "MapSMtoCores for SM %d.%d is undefined.  Default to use %d Cores/SM\n", major, minor, nGpuArchCoresPerSM[index-1].Cores);
     return nGpuArchCoresPerSM[index-1].Cores;
 }
 // end of GPU Architecture definitions
@@ -1113,7 +1113,7 @@ inline int gpuDeviceInit(int devID)
     }
 
     checkCudaErrors(cudaSetDevice(devID));
-    printf("gpuDeviceInit() CUDA Device [%d]: \"%s\n", devID, deviceProp.name);
+    fprintf(stderr, "gpuDeviceInit() CUDA Device [%d]: \"%s\n", devID, deviceProp.name);
 
     return devID;
 }
@@ -1226,7 +1226,7 @@ inline int findCudaDevice(int argc, const char **argv)
 
         if (devID < 0)
         {
-            printf("Invalid command line parameter\n ");
+            fprintf(stderr, "Invalid command line parameter\n ");
             exit(EXIT_FAILURE);
         }
         else
@@ -1235,7 +1235,7 @@ inline int findCudaDevice(int argc, const char **argv)
 
             if (devID < 0)
             {
-                printf("exiting...\n");
+                fprintf(stderr, "exiting...\n");
                 exit(EXIT_FAILURE);
             }
         }
@@ -1246,7 +1246,7 @@ inline int findCudaDevice(int argc, const char **argv)
         devID = gpuGetMaxGflopsDeviceId();
         checkCudaErrors(cudaSetDevice(devID));
         checkCudaErrors(cudaGetDeviceProperties(&deviceProp, devID));
-        printf("GPU Device %d: \"%s\" with compute capability %d.%d\n\n", devID, deviceProp.name, deviceProp.major, deviceProp.minor);
+        fprintf(stderr, "GPU Device %d: \"%s\" with compute capability %d.%d\n\n", devID, deviceProp.name, deviceProp.major, deviceProp.minor);
     }
 
     return devID;
@@ -1266,12 +1266,12 @@ inline bool checkCudaCapabilities(int major_version, int minor_version)
     if ((deviceProp.major > major_version) ||
         (deviceProp.major == major_version && deviceProp.minor >= minor_version))
     {
-        printf("  Device %d: <%16s >, Compute SM %d.%d detected\n", dev, deviceProp.name, deviceProp.major, deviceProp.minor);
+        fprintf(stderr, "  Device %d: <%16s >, Compute SM %d.%d detected\n", dev, deviceProp.name, deviceProp.major, deviceProp.minor);
         return true;
     }
     else
     {
-        printf("  No GPU device was found that can support CUDA compute capability %d.%d.\n", major_version, minor_version);
+        fprintf(stderr, "  No GPU device was found that can support CUDA compute capability %d.%d.\n", major_version, minor_version);
         return false;
     }
 }

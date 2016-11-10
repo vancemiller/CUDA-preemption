@@ -62,6 +62,7 @@ void mem_init(int *buf, size_t n) {
 }
 
 // Forward declarations
+cudaError_t setup_memory(int* src[], int* dst[], size_t size, size_t n_regions);
 void run_experiment(const int priority, const int size, const int iterations,
     const int delay);
 
@@ -115,35 +116,11 @@ int main(int argc, char **argv) {
   
   // Create memory regions
 #define N_MEMORY_REGIONS 8
-  size_t n_regions = min(iterations, N_MEMORY_REGIONS);
+  size_t n_regions = N_MEMORY_REGIONS;
+  int *src[n_regions];
+  int *dst[n_regions];
   
-  // initialise host data
-  int *h_src[n_regions];
-  for (int i = 0; i < n_regions; i++) {
-    ERR_EQ(h_src[i] = (int *) malloc(size), NULL);
-    mem_init(h_src[i], size);
-  }
-
-  // initialise device data
-  int *h_dst[n_regions];
-  for (int i = 0; i < n_regions; i++) {
-    ERR_EQ(h_dst[i] = (int *) malloc(size), NULL);
-    memset(h_dst[i], 0, size);
-  }
-
-  // copy source data -> device
-  int *d_src[n_regions];
-  for (int i = 0; i < n_regions; i++) {
-    checkCudaErrors(cudaMalloc(&d_src[i], size));
-    checkCudaErrors(cudaMemcpy(d_src[i], h_src[i], size, cudaMemcpyHostToDevice));
-  }
-
-  // allocate memory for memcopy destination
-  int *d_dst[n_regions];
-  for (int i = 0; i < n_regions; i++) {
-    checkCudaErrors(cudaMalloc(&d_dst[i], size));
-  }
-
+  setup_memory(src, dst, size, n_regions);
   cudaDeviceSynchronize();
 
   // Create stream
@@ -169,7 +146,7 @@ int main(int argc, char **argv) {
       if (i >= iterations) {
         break;
       }
-      kernel<<<gridSize, blockSize, 0, stream>>>(d_dst[j], d_src[j], size,
+      kernel<<<gridSize, blockSize, 0, stream>>>(dst[j], src[j], size,
           delay);
       checkCudaErrors(cudaStreamSynchronize(stream));
     }
@@ -177,21 +154,15 @@ int main(int argc, char **argv) {
   checkCudaErrors(cudaEventRecord(end, stream));
   checkCudaErrors(cudaEventSynchronize(end));
 
-  for (int i = 0; i < n_regions; i++) {
-    checkCudaErrors(cudaMemcpy(h_dst[i], d_dst[i], size, cudaMemcpyDeviceToHost));
-  }
-
   // check results of the last computation
-  for (int i = 0; i < n_regions; i++) {
-    ERR_NE(memcmp(h_dst[i], h_src[i], size), 0);  
+  for (int i = 0; i < n_regions && i < iterations; i++) {
+    ERR_NE(memcmp(dst[i], src[i], size), 0);  
   }
   
   // Clean up
   for (int i = 0; i < n_regions; i++) {
-    checkCudaErrors (cudaFree(d_src[i]));
-    checkCudaErrors(cudaFree(d_dst[i]));
-    free(h_src[i]);
-    free(h_dst[i]);
+    checkCudaErrors (cudaFree(src[i]));
+    checkCudaErrors(cudaFree(dst[i]));
   }
   // Print out average time
   float ms;
@@ -200,5 +171,16 @@ int main(int argc, char **argv) {
   // size iterations ms average
   printf("%zu, %d, %f, %f\n", size, iterations, ms, ms / (float) iterations);
   exit (EXIT_SUCCESS);
+}
+
+cudaError_t setup_memory(int* src[], int* dst[], size_t size,
+    size_t n_regions) {
+  for (int i = 0; i < n_regions; i++) {
+    checkCudaErrors(cudaMallocManaged(&src[i], size * sizeof(int)));
+    checkCudaErrors(cudaMallocManaged(&dst[i], size * sizeof(int)));
+    mem_init(src[i], size);
+    memset(dst[i], 0, size);
+  }
+  return cudaSuccess;
 }
 

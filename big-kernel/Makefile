@@ -216,7 +216,7 @@ endif
 # Target rules
 all: build
 
-build: big-kernel
+build: big-kernel test-unified
 
 check.deps:
 ifeq ($(SAMPLE_ENABLED),0)
@@ -224,6 +224,12 @@ ifeq ($(SAMPLE_ENABLED),0)
 else
 	@echo "Sample is ready - all dependencies have been met"
 endif
+
+test-unified.o:test-unified.cu
+	$(EXEC) $(NVCC) $(INCLUDES) $(ALL_CCFLAGS) $(GENCODE_FLAGS) -o $@ -c $<
+
+test-unified: test-unified.o
+	$(EXEC) $(NVCC) $(ALL_LDFLAGS) $(GENCODE_FLAGS) -o $@ $+ $(LIBRARIES)
 
 big-kernel.o:big-kernel.cu
 	$(EXEC) $(NVCC) $(INCLUDES) $(ALL_CCFLAGS) $(GENCODE_FLAGS) -o $@ -c $<
@@ -235,6 +241,6 @@ run: build
 	$(EXEC) ./big-kernel
 
 clean:
-	rm -f big-kernel big-kernel.o
+	rm -f test-unified test-unified.o big-kernel big-kernel.o
 
 clobber: clean
