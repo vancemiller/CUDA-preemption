@@ -11,6 +11,7 @@
 
 // std::system includes
 #include <cstdio>
+#include <vector>
 
 // CUDA-C includes
 #include <cuda.h>
@@ -118,30 +119,31 @@ int main(int argc, char **argv) {
   size_t n_regions = min(iterations, N_MEMORY_REGIONS);
   
   // initialise host data
-  int *h_src[n_regions];
+  std::vector<int*> h_src(n_regions);
   for (int i = 0; i < n_regions; i++) {
-    ERR_EQ(h_src[i] = (int *) malloc(size), NULL);
+    ERR_EQ(h_src[i] = (int *) malloc(sizeof(int) * size), NULL);
     mem_init(h_src[i], size);
   }
 
   // initialise device data
-  int *h_dst[n_regions];
+  std::vector<int*> h_dst(n_regions);
   for (int i = 0; i < n_regions; i++) {
-    ERR_EQ(h_dst[i] = (int *) malloc(size), NULL);
+    ERR_EQ(h_dst[i] = (int *) malloc(sizeof(int) * size), NULL);
     memset(h_dst[i], 0, size);
   }
 
   // copy source data -> device
-  int *d_src[n_regions];
+  std::vector<int*> d_src(n_regions);
   for (int i = 0; i < n_regions; i++) {
-    checkCudaErrors(cudaMalloc(&d_src[i], size));
-    checkCudaErrors(cudaMemcpy(d_src[i], h_src[i], size, cudaMemcpyHostToDevice));
+    checkCudaErrors(cudaMalloc(&d_src[i], sizeof(int) * size));
+    checkCudaErrors(cudaMemcpy(d_src[i], h_src[i], sizeof(int) * size,
+          cudaMemcpyHostToDevice));
   }
 
   // allocate memory for memcopy destination
-  int *d_dst[n_regions];
+  std::vector<int*> d_dst(n_regions);
   for (int i = 0; i < n_regions; i++) {
-    checkCudaErrors(cudaMalloc(&d_dst[i], size));
+    checkCudaErrors(cudaMalloc(&d_dst[i], sizeof(int) * size));
   }
 
   cudaDeviceSynchronize();
@@ -165,10 +167,7 @@ int main(int argc, char **argv) {
   checkCudaErrors(cudaEventCreate(&end));
   checkCudaErrors(cudaEventRecord(start, stream));
   for (int i = 0; i < iterations; i++) {
-    for (int j = 0; j < n_regions; j++, i++) {
-      if (i >= iterations) {
-        break;
-      }
+    for (int j = 0; j < n_regions && i < iterations; j++, i++) {
       kernel<<<gridSize, blockSize, 0, stream>>>(d_dst[j], d_src[j], size,
           delay);
       checkCudaErrors(cudaStreamSynchronize(stream));
